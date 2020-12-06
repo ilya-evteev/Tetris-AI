@@ -57,11 +57,11 @@ def turn(gcb: Board) -> TetrisAction:
         minX, maxX= getBorders(RotationCurrentShapePoint, CurrentShape)
         for RotationCurrentShapePos in range(-minX, BoardSize - maxX):
             board = predictionBoard(RotationCurrentShapePoint, RotationCurrentShapePos, sBoard, CurrentShape, BoardSize)
-            for d1 in RotationNextShapeRange:
-                minX, maxX = getBorders(d1, NextShape)
-                dropDist = calcNextDropDist(board, d1, range(-minX, BoardSize - maxX), NextShape, BoardSize)
-                for x1 in range(-minX, BoardSize - maxX):
-                    Solution, maxHeight = FindSolution(np.copy(board), d1, x1, dropDist, NextShape, BoardSize)
+            for RotationNextShapePoint in RotationNextShapeRange:
+                minX, maxX = getBorders(RotationNextShapePoint, NextShape)
+                dropDist = calcNextDropDist(board, RotationNextShapePoint, range(-minX, BoardSize - maxX), NextShape, BoardSize)
+                for RotationNextShapePos in range(-minX, BoardSize - maxX):
+                    Solution, maxHeight = FindSolution(np.copy(board), RotationNextShapePoint, RotationNextShapePos, dropDist, NextShape, BoardSize)
                     if not BestSolution or BestSolution[2] < Solution:
                         BestSolution = (RotationCurrentShapePoint, RotationCurrentShapePos, Solution)
 
@@ -209,5 +209,5 @@ def main(uri: Text):
 
 
 if __name__ == "__main__":
-    uri = "http://codebattle2020.westeurope.cloudapp.azure.com/codenjoy-contest/board/player/84086rxrvd8vhgv5r6do?code=4906838677825017635&gameName=tetris"
+    uri = "http://codebattle2020.westeurope.cloudapp.azure.com/codenjoy-contest/board/player/zaa6tpomfbpqjj936e4y?code=8107204041537800123&gameName=tetris"
     main(uri)
