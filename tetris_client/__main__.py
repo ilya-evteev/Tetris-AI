@@ -95,6 +95,52 @@ def getBorders(direction, shape):
     Coords = list(Coords)
     return min(list(zip(*Coords))[0]), max(list(zip(*Coords))[0])
 
+def FindSolution(step1Board, d1, x1, dropDist, nextShape, BoardSize):
+
+    step1Board = dropDownByDist(step1Board, nextShape, d1, x1, dropDist[x1])
+
+    fullLines, nearFullLines = 0, 0
+    roofY = [0] * BoardSize
+    holeCandidates = [0] * BoardSize
+    holeConfirm = [0] * BoardSize
+    vHoles, vBlocks = 0, 0
+
+    for y in range(BoardSize - 1, -1, -1):
+        hasHole = False
+        hasBlock = False
+        for x in range(BoardSize):
+            if step1Board[y, x] == '.':
+                hasHole = True
+                holeCandidates[x] += 1
+            else:
+                hasBlock = True
+                roofY[x] = BoardSize - y
+                if holeCandidates[x] > 0:
+                    holeConfirm[x] += holeCandidates[x]
+                    holeCandidates[x] = 0
+                if holeConfirm[x] > 0:
+                    vBlocks += 1
+        if not hasBlock:
+            break
+        if not hasHole and hasBlock:
+            fullLines += 1
+    vHoles = sum([x ** .7 for x in holeConfirm])
+    maxHeight = max(roofY) - fullLines
+
+    roofDy = [roofY[i] - roofY[i+1] for i in range(len(roofY) - 1)]
+
+    if len(roofDy) <= 0:
+        stdDY = 0
+    else:
+        stdDY = math.sqrt(sum([y ** 2 for y in roofDy]) / len(roofDy) - (sum(roofDy) / len(roofDy)) ** 2)
+
+    absDy = sum([abs(x) for x in roofDy])
+    maxDy = max(roofY) - min(roofY)
+
+    score = np.exp(fullLines) / np.exp(1) - vHoles * 0.3 - vBlocks * 0.5 - maxHeight ** 1.5 * 0.01 \
+            - stdDY * 0.001 - absDy * 0.09 - maxDy * 0.1
+
+    return score, maxHeight
 
 def getRotatedOffsets(direction, shape):
     global shapeCoord
@@ -156,52 +202,7 @@ def calcNextDropDist(data, RotationCurrentShapePoint, xRange, shape, BoardSize):
                 res[RotationCurrentShapePos] = yy
     return res
 
-def FindSolution(step1Board, d1, x1, dropDist, nextShape, BoardSize):
 
-    step1Board = dropDownByDist(step1Board, nextShape, d1, x1, dropDist[x1])
-
-    fullLines, nearFullLines = 0, 0
-    roofY = [0] * BoardSize
-    holeCandidates = [0] * BoardSize
-    holeConfirm = [0] * BoardSize
-    vHoles, vBlocks = 0, 0
-
-    for y in range(BoardSize - 1, -1, -1):
-        hasHole = False
-        hasBlock = False
-        for x in range(BoardSize):
-            if step1Board[y, x] == '.':
-                hasHole = True
-                holeCandidates[x] += 1
-            else:
-                hasBlock = True
-                roofY[x] = BoardSize - y
-                if holeCandidates[x] > 0:
-                    holeConfirm[x] += holeCandidates[x]
-                    holeCandidates[x] = 0
-                if holeConfirm[x] > 0:
-                    vBlocks += 1
-        if not hasBlock:
-            break
-        if not hasHole and hasBlock:
-            fullLines += 1
-    vHoles = sum([x ** .7 for x in holeConfirm])
-    maxHeight = max(roofY) - fullLines
-
-    roofDy = [roofY[i] - roofY[i+1] for i in range(len(roofY) - 1)]
-
-    if len(roofDy) <= 0:
-        stdDY = 0
-    else:
-        stdDY = math.sqrt(sum([y ** 2 for y in roofDy]) / len(roofDy) - (sum(roofDy) / len(roofDy)) ** 2)
-
-    absDy = sum([abs(x) for x in roofDy])
-    maxDy = max(roofY) - min(roofY)
-
-    score = fullLines * 1.8 - vHoles * 1.0 - vBlocks * 0.5 - maxHeight ** 1.5 * 0.02 \
-         - stdDY * 0.01 - absDy * 0.2 - maxDy * 0.3
-
-    return score, maxHeight
 
 def main(uri: Text):
     gcb = GameClient(uri)
@@ -209,5 +210,5 @@ def main(uri: Text):
 
 
 if __name__ == "__main__":
-    uri = "http://codebattle2020.westeurope.cloudapp.azure.com/codenjoy-contest/board/player/zaa6tpomfbpqjj936e4y?code=8107204041537800123&gameName=tetris"
+    uri = "http://codebattle2020.westeurope.cloudapp.azure.com/codenjoy-contest/board/player/zaa6tpomfbpqjj936e4y?code=8107204041537800123"
     main(uri)
